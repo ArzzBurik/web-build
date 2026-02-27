@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web2APK - Arzz Official</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background-color: #050508; color: #e2e2e2; padding: 15px; }
+        .card { background-color: #0d0d14; border: 1px solid #1f1f2e; border-radius: 16px; padding: 18px; margin-bottom: 15px; }
+        .title { font-size: 24px; font-weight: 700; color: #8b5cf6; text-align: center; margin-top: 10px; }
+        .user-tag { background: #161625; border: 1px solid #2d2d44; padding: 10px; border-radius: 12px; text-align: center; color: #a78bfa; font-size: 13px; margin: 15px 0; }
+        .label { font-size: 11px; color: #9ca3af; margin-top: 10px; display: block; }
+        .input-box { width: 100%; background: #050508; border: 1px solid #2d2d44; color: white; padding: 12px; border-radius: 10px; margin: 5px 0 15px 0; outline: none; }
+        .btn-build { background: linear-gradient(90deg, #8b5cf6, #3b82f6); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-build:active { transform: scale(0.98); opacity: 0.8; }
+        .logs { background: #000; border: 1px solid #1f1f2e; height: 100px; border-radius: 10px; padding: 10px; font-family: monospace; font-size: 10px; overflow-y: auto; color: #9ca3af; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1 class="title">Web2APK</h1>
+    <div class="user-tag">👤 Sensei_The_Darkness</div>
+
+    <div class="card">
+        <label class="label">🔗 Website URL (HTTP/HTTPS)</label>
+        <input type="text" id="webUrl" class="input-box" placeholder="https:// atau http://">
+        
+        <label class="label">✍️ App Name</label>
+        <input type="text" id="appName" class="input-box" placeholder="My App Name">
+
+        <button class="btn-build" onclick="startBuild()">🛠️ START BUILD APK</button>
+    </div>
+
+    <div class="card">
+        <p style="font-size: 11px; margin-bottom: 5px; color: #8b5cf6;">System Output</p>
+        <div class="logs" id="logBox">> Waiting for command, Sensei...</div>
+    </div>
+
+    <script>
+        const API_URL = "http://juancokkkkniihpp.privatboy.biz.id5947"; // Ganti dengan IP & Port Panel Pterodactyl lu
+
+        async function startBuild() {
+            const url = document.getElementById('webUrl').value;
+            const name = document.getElementById('appName').value;
+            const logBox = document.getElementById('logBox');
+
+            if (!url || !name) return alert("Isi semua datanya Sensei!");
+            
+            logBox.innerHTML += `<br>> Requesting Build for: ${name}...`;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/build`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ url, name })
+                });
+                
+                if(response.ok) {
+                    logBox.innerHTML += `<br><span style="color:#10b981">> Success! Check Telegram for APK.</span>`;
+                } else {
+                    logBox.innerHTML += `<br><span style="color:#ef4444">> Failed to trigger build.</span>`;
+                }
+            } catch(e) {
+                logBox.innerHTML += `<br><span style="color:#ef4444">> Error: Cannot connect to VPS.</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

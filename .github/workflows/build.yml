@@ -1,4 +1,4 @@
-name: Build APK Real-Time
+name: Build APK Hybrid (HTTP/HTTPS)
 on:
   repository_dispatch:
     types: [build_apk]
@@ -7,7 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v3
 
       - name: Setup Java
@@ -16,16 +16,26 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
 
-      - name: Build APK
+      - name: Build APK Process
         run: |
           npm install -g cordova
           cordova create build_folder com.arzz.official "${{ github.event.client_payload.app_name }}"
           cd build_folder
           cordova platform add android
+          
+          # Hapus index default, buat redirect sesuai URL payload
+          rm -rf www/index.html
           echo "<html><head><script>window.location.href='${{ github.event.client_payload.web_url }}';</script></head></html>" > www/index.html
+          
+          # MAGIC: Izinkan HTTP (Cleartext Traffic) agar user panel http tidak kasihan
+          sed -i 's/android:supportsRtl="true"/android:supportsRtl="true" android:usesCleartextTraffic="true"/' platforms/android/app/src/main/AndroidManifest.xml
+
+          # Proses Build & Sign
           cordova build android --release -- --keystore=../my-release-key.jks --storePassword=${{ secrets.KEYSTORE_PASSWORD }} --alias=my-alias --password=${{ secrets.KEYSTORE_PASSWORD }}
 
-      - name: Send to Telegram
+      - name: Deliver APK to Telegram
         run: |
           APK_PATH=$(find build_folder/platforms/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
-          curl -F document=@"$APK_PATH" "https://api.telegram.org/bot${{ secrets.TELE_TOKEN }}/sendDocument?chat_id=${{ github.event.client_payload.chat_id }}&caption=✅ APK Berhasil Dibuat (Secure HTTPS)"
+          curl -v -F document=@"$APK_PATH" \
+          -F caption="✅ **APK READY, SENSEI!**%0A📱 App: ${{ github.event.client_payload.app_name }}%0A🔗 Target: ${{ github.event.client_payload.web_url }}%0A🕶️ Status: Signed by The Darkness" \
+          "https://api.telegram.org/bot${{ secrets.TELE_TOKEN }}/sendDocument?chat_id=${{ github.event.client_payload.chat_id }}&parse_mode=Markdown"
